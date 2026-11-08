@@ -1,5 +1,5 @@
 import json
-import os
+from pathlib import Path
 import torch
 
 from datasets import load_dataset
@@ -11,10 +11,12 @@ DATASET_ID = "MatanBT/gcg-evaluated-data"
 
 MAX_TESTS = 100  # Start with 20; set to None for all rows
 MAX_NEW_TOKENS = 160
+SKIP_MESSAGE_IDS = {0, 1, 2}  # First prompt, confirmed in working_pairs.json
 
-RESULTS_FILE = "results/baseline_results.jsonl"
+RESULTS_DIR = Path(__file__).resolve().parent / "results"
+RESULTS_FILE = RESULTS_DIR / "baseline_results.jsonl"
 
-os.makedirs("results", exist_ok=True)
+RESULTS_DIR.mkdir(exist_ok=True)
 
 # Load Gemma only once
 print("Loading Gemma...")
@@ -41,7 +43,7 @@ dataset = load_dataset(
 # Resume from the last saved row if interrupted
 completed = set()
 
-if os.path.exists(RESULTS_FILE):
+if RESULTS_FILE.exists():
     with open(RESULTS_FILE, "r", encoding="utf-8") as f:
         for line in f:
             record = json.loads(line)
@@ -55,7 +57,7 @@ with open(RESULTS_FILE, "a", encoding="utf-8") as output:
 
     for row_index, row in enumerate(dataset):
 
-        if row_index in completed:
+        if row_index in completed or row["message_id"] in SKIP_MESSAGE_IDS:
             continue
 
         if MAX_TESTS is not None and tested >= MAX_TESTS:
