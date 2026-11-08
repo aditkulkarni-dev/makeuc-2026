@@ -1,6 +1,7 @@
 import json
 import sys
 import threading
+import tempfile
 import time
 import unittest
 from pathlib import Path
@@ -21,6 +22,46 @@ class FakeEngine:
 
 
 class Tests(unittest.TestCase):
+    def test_collected_results_without_model_loading(self):
+        class NoInference:
+            def load(self):
+                raise AssertionError('Viewing saved results must not load a model.')
+
+        with tempfile.TemporaryDirectory() as directory:
+            app = App(NoInference(), dataset_dir=directory)
+            server = ThreadingHTTPServer(('127.0.0.1', 0), handler_for(app))
+            threading.Thread(target=server.serve_forever, daemon=True).start()
+            url = f'http://127.0.0.1:{server.server_port}/api/collected-results'
+            try:
+                with self.assertRaises(HTTPError) as error:
+                    urlopen(url)
+                self.assertEqual(error.exception.code, 404)
+                data = {'complete': True, 'results': [{'alpha': 0, 'response': '<script>example</script>'}]}
+                path = Path(directory) / 'dashboard.json'
+                path.write_text(json.dumps(data))
+                (Path(directory) / 'collection_report.json').write_text('{"invocation_seconds": 493.2}')
+                with urlopen(url) as response:
+                    loaded = json.load(response)
+                self.assertEqual(loaded['results'][0]['response'], data['results'][0]['response'])
+                self.assertEqual(loaded['results'][0]['refusal_evaluation']['label'], 'non_refusal')
+                self.assertEqual(loaded['collection_report']['invocation_seconds'], 493.2)
+                self.assertFalse(app.busy)
+                self.assertFalse(app.jobs)
+                path.write_text(json.dumps(dict(config=dict(model='fixture', max_tokens=160), results=[
+                    dict(prompt_id='a', prompt='same', alpha=a, response=r)
+                    for a, r in [(0, 'Sure'), (.1, 'I cannot help'), (.2, 'Sure')]])))
+                with urlopen(url.replace('collected-results', 'jailbreak-comparison')) as response:
+                    comparison = json.load(response)
+                self.assertEqual([r['estimated_success_rate'] for r in comparison['by_alpha']], [1, 0, 1])
+                self.assertFalse(app.busy)
+                path.write_text('invalid')
+                with self.assertRaises(HTTPError) as error:
+                    urlopen(url)
+                self.assertEqual(error.exception.code, 503)
+            finally:
+                server.shutdown()
+                server.server_close()
+
     def test_validation(self):
         self.assertEqual(validate({'prompt': ' hello ', 'alphas': [.2, .2]})['alphas'], [0, .2])
         for payload in [{'prompt': ''}, {'prompt': 'x', 'alphas': [float('nan')]},

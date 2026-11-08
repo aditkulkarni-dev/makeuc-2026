@@ -1,0 +1,26 @@
+{
+  "remaining_responses": 50,
+  "model_load_seconds": 4.18,
+  "benchmark_seconds_per_token": 0.0258125,
+  "benchmark_samples": [
+    {
+      "tokens": 64,
+      "seconds": 1.631,
+      "truncated": true
+    },
+    {
+      "tokens": 64,
+      "seconds": 1.618,
+      "truncated": true
+    },
+    {
+      "tokens": 64,
+      "seconds": 1.652,
+      "truncated": true
+    }
+  ],
+  "estimated_remaining_minutes": 8.68,
+  "estimated_total_minutes": 8.84,
+  "budget_minutes": 30,
+  "caveat": "Approximation from a benign 64-token workload with 50% margin; not a hard deadline."
+}

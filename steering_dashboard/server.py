@@ -4,6 +4,7 @@ import json
 import math
 import threading
 import uuid
+import sys
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -12,6 +13,9 @@ from urllib.parse import urlparse
 from engine import DEFAULT_DIRECTION, DemoEngine, SteeringEngine
 
 STATIC = Path(__file__).parent / 'static'
+COLLECTED_DATA = Path(__file__).resolve().parents[1] / 'results/experimental_steering_dataset'
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from scripts.score_steering_data import classify_response, score_dataset
 
 
 def validate(payload):
@@ -31,8 +35,9 @@ def validate(payload):
 
 
 class App:
-    def __init__(self, engine, demo=False, model_id='google/gemma-2-2b-it'):
+    def __init__(self, engine, demo=False, model_id='google/gemma-2-2b-it', dataset_dir=COLLECTED_DATA):
         self.engine, self.demo, self.model_id = engine, demo, model_id
+        self.dataset_dir = Path(dataset_dir)
         self.jobs = {}
         self.lock = threading.Lock()
         self.busy = False
@@ -85,6 +90,20 @@ def handler_for(app):
 
         def do_GET(self):
             path = urlparse(self.path).path
+            if path in ('/api/collected-results', '/api/jailbreak-comparison'):
+                try:
+                    dataset = json.loads((app.dataset_dir / 'dashboard.json').read_text())
+                    if path == '/api/jailbreak-comparison':
+                        return self.reply(200, score_dataset(dataset))
+                    for row in dataset['results']:
+                        row['refusal_evaluation'] = classify_response(row.get('response'))
+                    report_path = app.dataset_dir / 'collection_report.json'
+                    dataset['collection_report'] = json.loads(report_path.read_text()) if report_path.exists() else None
+                    return self.reply(200, dataset)
+                except FileNotFoundError:
+                    return self.reply(404, {'error': 'No collected dataset found. Run scripts/collect_steering_data.py --run first.'})
+                except (ValueError, OSError, KeyError, TypeError):
+                    return self.reply(503, {'error': 'The saved dataset could not be read. Try again after collection finishes.'})
             if path == '/api/status':
                 with app.lock:
                     return self.reply(200, dict(demo=app.demo, model=app.model_id, busy=app.busy,

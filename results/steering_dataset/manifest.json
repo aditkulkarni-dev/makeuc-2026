@@ -1,0 +1,38 @@
+{
+  "config_id": "5aaa0a242f3ced4ae9db3e386f9f7e47f1b94c213723fa6456bf6d25a76b5166",
+  "config": {
+    "model": "google/gemma-2-2b-it",
+    "alphas": [
+      0.0,
+      0.1,
+      0.2,
+      0.25,
+      0.5
+    ],
+    "max_tokens": 256,
+    "direction_sha256": "ad236e6c5d2243d35fbde9c041efcf1d7fdd2e05fca7472d57b5f087e7140412",
+    "direction_metadata": {
+      "pos": -1,
+      "layer": 15
+    },
+    "decoding": "greedy",
+    "intervention": "layer_input + alpha * direction",
+    "prompt_ids": [
+      "51650b84677e0443",
+      "f655b1d8b39610a1",
+      "197f538d5560e66f",
+      "22f471860424de88",
+      "6b3485215ce86405",
+      "946da1c5ee1cb545",
+      "4786546c7c14b3b5",
+      "fc89a638e82d0533",
+      "d90b41201e520868",
+      "73541405febeefd2"
+    ]
+  },
+  "source": {
+    "path": "/home/adityakulkarni/makeuc-2026/results/gcg_results.json",
+    "sha256": "9a43dac2a74772e416c0dc3b23b702f02be83a09e5164a4142d1b0aa5b7063cc"
+  },
+  "created_at": "2026-11-08T02:29:54.324635+00:00"
+}

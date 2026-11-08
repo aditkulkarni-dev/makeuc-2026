@@ -1,0 +1,6 @@
+{
+  "complete": true,
+  "saved_responses": 50,
+  "total_saved_generation_seconds": 314.52,
+  "note": "Measured generation time excludes model loading, benchmark, tokenization, and export overhead."
+}
