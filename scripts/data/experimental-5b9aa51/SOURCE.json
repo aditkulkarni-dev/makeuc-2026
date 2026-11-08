@@ -1,0 +1,39 @@
+{
+  "repository": "https://github.com/aditkulkarni-dev/makeuc-2026",
+  "branch": "experimental",
+  "commit": "5b9aa51e5dfae56a19e954cd5e791e6fd397959c",
+  "files": [
+    {
+      "upstream_path": "gemma-gcg/evaluate_baseline.py",
+      "local_path": "evaluate_baseline.py"
+    },
+    {
+      "upstream_path": "gemma-gcg/review_results.py",
+      "local_path": "review_results.py"
+    },
+    {
+      "upstream_path": "gemma-gcg/results/baseline_results.jsonl",
+      "local_path": "results/baseline_results.jsonl"
+    },
+    {
+      "upstream_path": "gemma-gcg/results/reviews.json",
+      "local_path": "results/reviews.json"
+    },
+    {
+      "upstream_path": "gemma-gcg/results/working_pairs.json",
+      "local_path": "results/working_pairs.json"
+    }
+  ],
+  "note": "Downloaded source references; remote scripts were inspected, not executed.",
+  "analysis": {
+    "baseline_rows": 200,
+    "unique_message_ids": 1,
+    "reviewed_rows": 30,
+    "approved_working_pairs": 27,
+    "selection": "manually approved successes after source refusal/published-score filters",
+    "source_max_new_tokens": 160,
+    "source_dtype": "bfloat16",
+    "collector_gpu_dtype": "float16",
+    "new_responses_require_new_labels": true
+  }
+}
